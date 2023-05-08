@@ -7,12 +7,17 @@ import {
   TabPanels,
   Tabs,
   Text,
+  useTab,
 } from "@chakra-ui/react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Login from "../components/Authentication/Login";
 import Signup from "../components/Authentication/Signup";
+import { useSearchParams } from "react-router-dom";
 
 function Homepage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams?.toString() ? 1 : 0);
+
   return (
     <Container maxW="xl" centerContent>
       <Box
@@ -37,10 +42,14 @@ function Homepage() {
         color="black"
         borderWidth="1px"
       >
-        <Tabs variant="soft-rounded">
+        <Tabs variant="soft-rounded" defaultIndex={activeTab}>
           <TabList mb="1em">
-            <Tab width="50%">Login</Tab>
-            <Tab width="50%">Signup</Tab>
+            <Tab width="50%" onClick={() => setSearchParams()}>
+              Login
+            </Tab>
+            <Tab width="50%" onClick={() => setSearchParams({ signup: "2" })}>
+              Signup
+            </Tab>
           </TabList>
           <TabPanels>
             <TabPanel>

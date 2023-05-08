@@ -6,15 +6,56 @@ import {
   InputGroup,
   InputRightElement,
   VStack,
+  useToast,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
+import AXIOS from "../../helpers/api";
+import { Apis } from "../../services/apiPaths";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const toast = useToast();
+  const navigate = useNavigate();
 
-  const loginHandler = () => {};
+  const loginHandler = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    if (!(email && password)) {
+      toast({
+        title: "All Fields are Required",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+      return;
+    }
+    try {
+      const response = await AXIOS.post(`${Apis.users}/login`, {
+        email,
+        password,
+      });
+      setIsLoading(false);
+      localStorage.setItem("userInfo", JSON.stringify(response?.data));
+      navigate("/chats", { replace: true });
+    } catch (err) {
+      console.log(err);
+      setIsLoading(false);
+      toast({
+        title: "Failed to login",
+        description: err?.response?.data?.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+    }
+  };
 
   return (
     <VStack spacing="5px" color="black">
@@ -53,6 +94,7 @@ const Login = () => {
         width="100%"
         style={{ marginTop: 15 }}
         onClick={loginHandler}
+        isLoading={isLoading}
       >
         Login
       </Button>
