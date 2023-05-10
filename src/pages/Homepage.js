@@ -12,11 +12,22 @@ import {
 import React, { useEffect, useState } from "react";
 import Login from "../components/Authentication/Login";
 import Signup from "../components/Authentication/Signup";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 function Homepage() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams?.toString() ? 1 : 0);
+  const [user, setUser] = useState();
+
+  useEffect(() => {
+    const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+    setUser(userInfo);
+
+    if (!userInfo) {
+      navigate("/", { replace: true });
+    }
+  }, [navigate]);
 
   return (
     <Container maxW="xl" centerContent>
