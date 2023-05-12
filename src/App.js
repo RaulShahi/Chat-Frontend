@@ -11,7 +11,7 @@ function App() {
 
   useEffect(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-    setUser(userInfo);
+    setUser(userInfo?.user);
 
     if (!userInfo) {
       navigate("/", { replace: true });
