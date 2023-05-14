@@ -14,6 +14,7 @@ import {
   MenuDivider,
   MenuItem,
   MenuList,
+  Spinner,
   Text,
   Tooltip,
   useDisclosure,
@@ -25,6 +26,8 @@ import ProfileModal from "./ProfileModal";
 import { useNavigate } from "react-router-dom";
 import AXIOS from "../../helpers/api";
 import { Apis } from "../../services/apiPaths";
+import ChatLoading from "../Chat/ChatLoading";
+import UserListItem from "../UserAvatar/UserListItem";
 
 const SideDrawer = () => {
   const [search, setSearch] = useState("");
@@ -33,9 +36,15 @@ const SideDrawer = () => {
   const [loadingChat, setLoadingChat] = useState();
   const navigate = useNavigate();
 
-  console.log({ searchResult });
+  const { user, token, setSelectedChat, chats, setChats } =
+    useContext(ChatContext);
 
-  const { user } = useContext(ChatContext);
+  const config = {
+    headers: {
+      Authorization: `Bear ${token}`,
+    },
+  };
+
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const logoutHandler = () => {
@@ -58,10 +67,14 @@ const SideDrawer = () => {
     }
     try {
       setLoading(true);
-      const searchedUsers = await AXIOS.get(`${Apis.users}?search=${search}`);
+
+      const searchedUsers = await AXIOS.get(
+        `${Apis.users}?search=${search}`,
+        config
+      );
 
       setLoading(false);
-      setSearchResult(searchedUsers);
+      setSearchResult(searchedUsers?.data);
     } catch (error) {
       setLoading(false);
       toast({
@@ -70,7 +83,38 @@ const SideDrawer = () => {
         status: "warning",
         duration: 5000,
         isClosable: true,
-        position: "top-left",
+        position: "bottom-left",
+      });
+      return;
+    }
+  };
+
+  const accessChat = async (userId) => {
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    try {
+      setLoadingChat(true);
+      const { data } = await AXIOS.post(`${Apis.chats}`, { userId }, config);
+
+      if (!chats.find((c) => c._id === data._id)) {
+        setChats([data, ...chats]);
+      }
+      setSelectedChat(data);
+      setLoadingChat(false);
+      onClose();
+    } catch (error) {
+      setLoadingChat(false);
+      toast({
+        title: "Erro Fetching the Chat!",
+        description: error.message,
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom-left",
       });
       return;
     }
@@ -138,6 +182,18 @@ const SideDrawer = () => {
               />
               <Button onClick={handleSearch}>Go</Button>
             </Box>
+            {loading ? (
+              <ChatLoading />
+            ) : (
+              searchResult?.map((user) => (
+                <UserListItem
+                  key={user._id}
+                  user={user}
+                  clickHandler={() => accessChat(user._id)}
+                />
+              ))
+            )}
+            {loadingChat && <Spinner ml="auto" display="flex" />}
           </DrawerBody>
         </DrawerContent>
       </Drawer>

@@ -9,9 +9,10 @@ const AXIOS = axios.create({
 // Setting auth (if JWT is present)
 
 const token = localStorage.getItem("userInfo")?.token;
+console.log({ token });
 
 if (token) {
-  AXIOS.defaults.headers["Authorization"] = `Beared ${token}`;
+  AXIOS.defaults.headers["Authorization"] = `Bearer ${token}`;
 }
 
 export default AXIOS;

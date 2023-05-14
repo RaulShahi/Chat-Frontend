@@ -7,18 +7,32 @@ import { useEffect, useState } from "react";
 
 function App() {
   const [user, setUser] = useState();
+  const [token, setToken] = useState();
+  const [selectedChat, setSelectedChat] = useState();
+  const [chats, setChats] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo"));
     setUser(userInfo?.user);
+    setToken(userInfo?.token);
 
     if (!userInfo) {
       navigate("/", { replace: true });
     }
   }, [navigate]);
   return (
-    <ChatContext.Provider value={{ user, setUser }}>
+    <ChatContext.Provider
+      value={{
+        user,
+        setUser,
+        token,
+        selectedChat,
+        setSelectedChat,
+        chats,
+        setChats,
+      }}
+    >
       <div className="App">
         <Routes>
           <Route path="/" element={<Homepage />} />

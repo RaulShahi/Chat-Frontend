@@ -9,6 +9,7 @@ import Chatbox from "../components/Chat/Chatbox";
 
 function Chatpage() {
   const { user, setUser } = useContext(ChatContext);
+  const [fetchAgain, setFetchAgain] = useState(false);
 
   return (
     <div style={{ width: "100%" }}>
@@ -20,8 +21,10 @@ function Chatpage() {
         h="91.5vh"
         w="100%"
       >
-        {user && <MyChats />}
-        {user && <Chatbox />}
+        {user && <MyChats fetchAgain={fetchAgain} />}
+        {user && (
+          <Chatbox fetchAgain={fetchAgain} setFetchAgain={setFetchAgain} />
+        )}
       </Box>
     </div>
   );
