@@ -16,7 +16,7 @@ const MyChats = ({ fetchAgain }) => {
   const toast = useToast();
   const config = {
     headers: {
-      Authorization: `Bear ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   };
 

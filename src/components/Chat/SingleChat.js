@@ -1,14 +1,93 @@
-import React, { useContext } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { ChatContext } from "../../context/ChatProvider";
-import { Box, IconButton, Text } from "@chakra-ui/react";
+import {
+  Box,
+  FormControl,
+  IconButton,
+  Input,
+  Spinner,
+  Text,
+  useToast,
+} from "@chakra-ui/react";
 import { ArrowBackIcon } from "@chakra-ui/icons";
 import ProfileModal from "../miscellaneous/ProfileModal";
 import { getSender, getSenderFull } from "../configs/ChatLogics";
 import UpdateGroupChatModal from "../miscellaneous/UpdateGroupChatModal";
+import AXIOS from "../../helpers/api";
+import { Apis } from "../../services/apiPaths";
+import "./styles.css";
+import ScrollableChat from "./ScrollableChat";
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [newMessage, setNewMessage] = useState("");
   const { user, token, selectedChat, setSelectedChat } =
     useContext(ChatContext);
+
+  const toast = useToast();
+
+  const config = {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
+  const fetchAllMessages = async () => {
+    if (!selectedChat) return;
+    try {
+      setLoading(true);
+      const { data } = await AXIOS.get(
+        `${Apis.messages}/${selectedChat._id}`,
+        config
+      );
+      setMessages(data);
+      setLoading(false);
+      console.log({ data });
+    } catch (error) {
+      setLoading(false);
+      toast({
+        title: "Error Occur",
+        description: "Faild to load the messages",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+    }
+  };
+
+  const typingHandler = (e) => {
+    setNewMessage(e.target.value);
+  };
+  const sendMessage = async (e) => {
+    if (e.key === "Enter" && newMessage) {
+      try {
+        const { data } = await AXIOS.post(
+          Apis.messages,
+          { content: newMessage, chatId: selectedChat._id },
+          config
+        );
+        setNewMessage("");
+        setMessages([...messages, data]);
+      } catch (error) {
+        toast({
+          title: "Error Occur",
+          description: "Faild to send the message",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+          position: "bottom",
+        });
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchAllMessages();
+  }, [selectedChat]);
+
   return (
     <>
       {selectedChat ? (
@@ -39,6 +118,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 <UpdateGroupChatModal
                   fetchAgain={fetchAgain}
                   setFetchAgain={setFetchAgain}
+                  fetchMessages={fetchAllMessages}
                 />
               </>
             )}
@@ -54,8 +134,29 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             borderRadius="lg"
             overflowY="hidden"
           >
-            {/* Messages Here */}
+            {loading ? (
+              <Spinner
+                size="xl"
+                alignSelf="center"
+                margin="auto"
+                w={20}
+                h={20}
+              />
+            ) : (
+              <div className="messages">
+                <ScrollableChat messages={messages} />
+              </div>
+            )}
           </Box>
+          <FormControl onKeyDown={sendMessage} isRequired mt={3}>
+            <Input
+              variant="filled"
+              bg="#E0E0E0"
+              placeholder="Enter a message..."
+              onChange={typingHandler}
+              value={newMessage}
+            />
+          </FormControl>
         </>
       ) : (
         <Box

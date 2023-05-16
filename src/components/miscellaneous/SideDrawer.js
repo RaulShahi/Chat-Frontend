@@ -41,7 +41,7 @@ const SideDrawer = () => {
 
   const config = {
     headers: {
-      Authorization: `Bear ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   };
 
